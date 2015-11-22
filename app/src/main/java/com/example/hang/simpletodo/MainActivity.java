@@ -1,6 +1,7 @@
 package com.example.hang.simpletodo;
 
 import android.content.Intent;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -15,9 +16,10 @@ import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements Serializable {
     ArrayList<String> items;
     ArrayAdapter<String> itemsAdapter;
     ListView lvItems;
@@ -29,8 +31,6 @@ public class MainActivity extends AppCompatActivity {
         readItems();
         itemsAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, items);
         lvItems.setAdapter(itemsAdapter);
-        items.add("First Item");
-        items.add("Second Item");
         setupListViewListener();
     }
 
@@ -39,6 +39,13 @@ public class MainActivity extends AppCompatActivity {
         String itemText = etNewItem.getText().toString();
         itemsAdapter.add(itemText);
         etNewItem.setText("");
+        writeItems();
+    }
+
+    public void onDeleteItem(int pos, String text){
+        items.remove(pos);
+        items.add(pos, text);
+        itemsAdapter.notifyDataSetChanged();
         writeItems();
     }
 
@@ -57,10 +64,12 @@ public class MainActivity extends AppCompatActivity {
         lvItems.setOnItemClickListener(
                 new AdapterView.OnItemClickListener() {
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                        Intent intent = new Intent(MainActivity.this, EditItemActivity.class);
-                        intent.putExtra("itemName", lvItems.getItemAtPosition(position).toString());
-                        intent.putExtra("itemPosition", position);
-                        startActivityForResult(intent, REQUEST_CODE);
+                        //Intent intent = new Intent(MainActivity.this, EditItemActivity.class);
+                        //intent.putExtra("itemName", lvItems.getItemAtPosition(position).toString());
+                        //intent.putExtra("itemPosition", position);
+                        //startActivityForResult(intent, REQUEST_CODE);
+
+                        showEditDialog(lvItems.getItemAtPosition(position).toString(), position);
                     }
                 });
     }
@@ -97,6 +106,13 @@ public class MainActivity extends AppCompatActivity {
             writeItems();
         }
     }
+
+    private void showEditDialog(String text, int pos) {
+        FragmentManager fm = getSupportFragmentManager();
+        DialogEdit editNameDialog = DialogEdit.newInstance(text, pos, this);
+        editNameDialog.show(fm, "fragment_edit_name");
+    }
+
 
     private int REQUEST_CODE = 20;
 }
